@@ -253,6 +253,7 @@ class Turbomole(Calculator):
                 if '$rij' in line:
                     self.calculate_energy='ridft'
                     self.calculate_forces='rdgrad'
+                    break
                 else:
                     self.calculate_energy='dscf'
                     self.calculate_forces='grad'
