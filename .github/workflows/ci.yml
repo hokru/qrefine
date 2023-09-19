@@ -15,33 +15,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    # - uses: actions/checkout@v3
     - name: Set up Python 3.11
       uses: actions/setup-python@v3
       with:
         python-version: "3.11"
     - name: Install CCTBX
       run: |
-        mkdir /opt/cctbx
-        cd /opt/cctbx
+        mkdir cctbx
         wget https://raw.githubusercontent.com/cctbx/cctbx_project/master/libtbx/auto_build/bootstrap.py
         python ./bootstrap.py --python 311 --builder=cctbx
+    - name: Install qrefine
+    - uses: actions/checkout@v3
+      with:
+        path: ./cctbx/modules/
     - name: Install restraints library
       run: |
         mkdir /opt/cctbx/modules/chem_data
         cd /opt/cctbx
         svn --quiet --non-interactive --trust-server-cert co https://github.com/phenix-project/geostd/trunk geostd
         svn --quiet --non-interactive --trust-server-cert co https://github.com/rlabduke/mon_lib.git/trunk mon_lib
-        svn --quiet --non-interactive --trust-server-cert export https://github.com/rlabduke/reference_data.git/trunk/Top8000/Top8000_rotamer_pct_contour_grids rotarama_data
-        svn --quiet --non-interactive --trust-server-cert --force export https://github.com/rlabduke/reference_data.git/trunk/Top8000/Top8000_ramachandran_pct_contour_grids rotarama_data
-        svn --quiet --non-interactive --trust-server-cert co https://github.com/rlabduke/reference_data.git/trunk/Top8000/Top8000_cablam_pct_contour_grids cablam_data
-        svn --quiet --non-interactive --trust-server-cert co https://github.com/rlabduke/reference_data.git/trunk/Top8000/rama_z rama_z
-    # - name: Install dependencies
-    #   run: |
-    #     source /opt/cctbx/mod
-    #     python -m pip install --upgrade pip
-    #     pip install flake8 pytest
-    #     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Install dependencies
+      run: |
+        source cctbx/build/setpaths.sh
+        cctbx.python -m pip install ase pymongo
     # - name: Lint with flake8
     #   run: |
     #     # stop the build if there are Python syntax errors or undefined names
