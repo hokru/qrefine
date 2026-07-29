@@ -107,10 +107,11 @@ def run_g_test(params, model, weights, start_fmodel, log):
           fragments=frags.get_fragment_extracts(),directory=label)
 
       calculator_manager = create_calculator(
-        fmodel             = start_fmodel,
-        model              = model,
-        params             = params,
-        restraints_manager = rm)
+        fmodel                = start_fmodel,
+        model                 = model,
+        params                = params,
+        restraints_manager    = rm,
+        geometry_rmsd_manager = None)
       grad=list(calculator_manager.target_and_gradients())[1]
       print(f"~   gnorm {np.linalg.norm(grad):.4f}", file=log)
       print(f"~   max_g {max(abs(i) for i in grad):.4f}  min_g {min(abs(i) for i in grad):.4f}", file=log)
