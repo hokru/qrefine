@@ -17,11 +17,15 @@ mon_lib_srv = mmtbx.monomer_library.server.server()
 ener_lib    = mmtbx.monomer_library.server.ener_lib(
   use_neutron_distances = True)
 
+DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR = 0.6
+
 class expand(object):
   def __init__(self, pdb_hierarchy, crystal_symmetry, select_within_radius=15,
-               create_restraints_manager=True):
+               create_restraints_manager=True,
+               const_shrink_donor_acceptor=DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR):
     # fixed members
     self.create_restraints_manager = create_restraints_manager
+    self.const_shrink_donor_acceptor = const_shrink_donor_acceptor
     self.crystal_symmetry = crystal_symmetry
     self.select_within_radius = select_within_radius
     self.cs_p1 = crystal.symmetry(self.crystal_symmetry.unit_cell(), "P1")
@@ -62,6 +66,7 @@ class expand(object):
   def update_super_sphere_geometry_restraints_manager(self):
     # XXX Unify with process_model_file of qr.py
     params = mmtbx.monomer_library.pdb_interpretation.master_params.extract()
+    params.const_shrink_donor_acceptor = self.const_shrink_donor_acceptor
     params.use_neutron_distances = True
     params.restraints_library.cdl = False
     params.sort_atoms = False

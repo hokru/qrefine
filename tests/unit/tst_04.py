@@ -7,6 +7,7 @@ import libtbx.load_env
 from scitbx.array_family import flex
 import mmtbx.model
 from qrefine import qr, refine
+from qrefine.restraints import get_default_pdb_interpretation_params
 from qrefine.utils import hierarchy_utils
 from libtbx.utils import null_out
 from qrefine.tests.unit import run_tests
@@ -18,8 +19,7 @@ def get_model(file_name):
   file_name = os.path.join(qr_unit_tests,"data_files",file_name)
   pdb_inp = iotbx.pdb.input(file_name)
   model = mmtbx.model.manager(model_input = pdb_inp, log = null_out())
-  params = mmtbx.model.manager.get_default_pdb_interpretation_params()
-  params.pdb_interpretation.const_shrink_donor_acceptor=0.6
+  params = get_default_pdb_interpretation_params()
   params.pdb_interpretation.use_neutron_distances = True
   params.pdb_interpretation.restraints_library.cdl = False
   params.pdb_interpretation.sort_atoms = False
@@ -39,11 +39,9 @@ def get_restraints_manager(expansion, clustering, file_name):
 def run(prefix):
   """
   Exercise expansion=False / expansion=True
-  
-  XXX
-  XXX test passes if const_shrink_donor_acceptor=0.6 in central location.
-  XXX (same for tst_44)
-  XXX
+
+  const_shrink_donor_acceptor is set centrally in
+  qrefine.restraints.get_default_pdb_interpretation_params.
   """
   done = False
   path = qr_unit_tests+"/data_files/"

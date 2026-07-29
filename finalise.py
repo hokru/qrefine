@@ -11,6 +11,7 @@ from libtbx import easy_run
 from qrefine import charges
 from qrefine import completion
 from qrefine.utils import hierarchy_utils
+from qrefine.restraints import get_default_pdb_interpretation_params
 from qrefine.tests.unit.skip import skip
 import mmtbx.model
 from libtbx.utils import null_out
@@ -115,7 +116,7 @@ def run(pdb_filename,
   )
 
   # Idealize H as riding
-  params = mmtbx.model.manager.get_default_pdb_interpretation_params()
+  params = get_default_pdb_interpretation_params()
   params.pdb_interpretation.use_neutron_distances = True
   params.pdb_interpretation.restraints_library.cdl = False
   h = ppf.all_chain_proxies.pdb_hierarchy

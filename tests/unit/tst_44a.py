@@ -26,8 +26,7 @@ def get_model(file_name):
 
 def get_restraints_manager(expansion, file_name):
   model = get_model(file_name=file_name)
-  mpar = mmtbx.model.manager.get_default_pdb_interpretation_params()
-  mpar.pdb_interpretation.const_shrink_donor_acceptor=0.6
+  mpar = restraints.get_default_pdb_interpretation_params()
   model.process(make_restraints=True, grm_normalization=False,
     pdb_interpretation_params = mpar)
   params = qr.get_default_params()

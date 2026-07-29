@@ -12,6 +12,8 @@ import mmtbx.model
 from libtbx.utils import null_out
 
 from qrefine import refine
+from qrefine.restraints import get_default_pdb_interpretation_params
+from qrefine.super_cell import DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR
 
 
 master_phil_str = """
@@ -33,6 +35,12 @@ scattering_table = wk1995  it1992  *n_gaussian electron neutron
 use_reduce = True
   .type = bool
   .help = Use Reduce/ReadySet in completion/capping
+const_shrink_donor_acceptor = %(const_shrink_donor_acceptor)s
+  .type = float
+  .help = Passed through to mmtbx pdb_interpretation.const_shrink_donor_acceptor. \
+          Shrinks the nonbonded VDW distance for H-bond donor/acceptor pairs. \
+          The mmtbx default changed from 0.6 to 0 in 2024. qrefine defaults \
+          to the pre-2024 value of 0.6 for consistency with existing behavior.
 cluster{
   charge_cutoff = 8.0
     .type = float
@@ -253,7 +261,7 @@ rst_file = None
 dump_gradients=None
   .type = str
   .help = used for debugging gradients when clustering.
-"""
+""" % {"const_shrink_donor_acceptor": DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR}
 
 def get_default_params():
   return iotbx.phil.parse(
@@ -415,7 +423,8 @@ and quantum.engine_name=aimnet2:
     self.model = self.data_manager.get_model(filename = model_file_name)
     if(self.params.scattering_table == "electron"):
       self.model.neutralize_scatterers()
-    params = mmtbx.model.manager.get_default_pdb_interpretation_params()
+    params = get_default_pdb_interpretation_params(
+      self.params.const_shrink_donor_acceptor)
     params.pdb_interpretation.use_neutron_distances = True
     params.pdb_interpretation.restraints_library.cdl = False
     params.pdb_interpretation.sort_atoms = False

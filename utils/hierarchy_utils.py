@@ -6,6 +6,7 @@ from libtbx.utils import Sorry
 from mmtbx import monomer_library
 from mmtbx.monomer_library import server
 from mmtbx.monomer_library import pdb_interpretation
+from qrefine.super_cell import DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR
 
 n_terminal_amino_acid_codes = ['FVA']
 c_terminal_amino_acid_codes = []
@@ -54,6 +55,7 @@ def get_pdb_interpretation_params():
     process_includes=True)
   params = master_params.extract()
   params.automatic_linking.link_metals=True
+  params.const_shrink_donor_acceptor = DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR
   return params
 
 def get_processed_pdb(pdb_filename=None,
@@ -200,7 +202,8 @@ def process_model_file(pdb_file_name, cif_objects, crystal_symmetry):
   from libtbx.utils import null_out
   from libtbx import group_args
   from ase.io import read as ase_io_read
-  params = mmtbx.model.manager.get_default_pdb_interpretation_params()
+  from qrefine.restraints import get_default_pdb_interpretation_params
+  params = get_default_pdb_interpretation_params()
   params.pdb_interpretation.use_neutron_distances = True
   params.pdb_interpretation.restraints_library.cdl = False
   params.pdb_interpretation.sort_atoms = False

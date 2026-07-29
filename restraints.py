@@ -18,7 +18,7 @@ from .plugin.ase.server_qr import RestAPICalculator
 from .plugin.tools import qr_tools
 from libtbx import group_args
 import math
-from qrefine.super_cell import expand
+from qrefine.super_cell import expand, DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR
 import qrefine.completion as model_completion
 from libtbx.utils import null_out
 from libtbx.test_utils import approx_equal
@@ -27,14 +27,19 @@ from libtbx import adopt_init_args
 import time
 from libtbx import easy_pickle
 
-def model_from_hierarchy(pdb_hierarchy, crystal_symmetry, cif_objects=None, log=None):
+def get_default_pdb_interpretation_params(
+    const_shrink_donor_acceptor=DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR):
   params = mmtbx.model.manager.get_default_pdb_interpretation_params()
+  params.pdb_interpretation.const_shrink_donor_acceptor = const_shrink_donor_acceptor
+  return params
+
+def model_from_hierarchy(pdb_hierarchy, crystal_symmetry, cif_objects=None, log=None):
+  params = get_default_pdb_interpretation_params()
   params.pdb_interpretation.use_neutron_distances = True
   params.pdb_interpretation.restraints_library.cdl = False
   params.pdb_interpretation.sort_atoms = False
   params.pdb_interpretation.flip_symmetric_amino_acids = False
   params.pdb_interpretation.correct_hydrogens=False
-  # params.pdb_interpretation.const_shrink_donor_acceptor=0.6 # XXX change back to old default?
   if log is None: log = null_out()
   model = mmtbx.model.manager(
     model_input       = None,
@@ -136,7 +141,8 @@ class from_expansion(object):
     self.expansion = expand(
       pdb_hierarchy        = self.model.get_hierarchy().deep_copy(),
       crystal_symmetry     = self.model.crystal_symmetry(),
-      select_within_radius = self.params.cluster.select_within_radius)
+      select_within_radius = self.params.cluster.select_within_radius,
+      const_shrink_donor_acceptor = self.params.const_shrink_donor_acceptor)
 
     # DEBUGGING
     #self.expansion.ph_super_sphere.write_pdb_file(
