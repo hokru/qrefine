@@ -13,6 +13,7 @@ from qrefine.restraints import from_qm, from_cctbx
 from qrefine.fragment import fragments
 from qrefine.clustering import betweenness_centrality_clustering
 from qrefine.tests.unit import run_tests
+from qrefine.super_cell import DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR
 from libtbx.utils import null_out
 
 import mmtbx.monomer_library.server
@@ -55,6 +56,7 @@ def get_model():
   params.use_neutron_distances = True
   params.restraints_library.cdl = False
   params.sort_atoms = False
+  params.const_shrink_donor_acceptor = DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR
   processed_pdb_file = mmtbx.monomer_library.pdb_interpretation.process(
     mon_lib_srv              = mon_lib_srv,
     ener_lib                 = ener_lib,

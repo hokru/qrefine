@@ -104,14 +104,32 @@ def refine(fmodel,
   print("Start:", file=log)
   monitor.show(prefix="  ")
 
-  if(not params.refine.skip_weight_search):
+  if(params.refine.skip_weight_search):
+    data_weight = params.refine.data_weight
+    if(data_weight is None): data_weight = 1.
+    print("Using user-supplied data weight (weight search skipped):",
+      data_weight, file=log)
+    calculator.setw(
+      data_weight             = data_weight,
+      restraints_weight_scale = 1.,
+      restraints_weight       = 1.)
+    calculator.reset_fmodel(fmodel = fmodel)
+    monitor.update(fmodel = fmodel)
+    print("At refinement start", file = log)
+    monitor.show()
+  else:
     print("Optimal weight search:", file=log)
     fmodel_copy = calculator.fmodel.deep_copy()
-    data_weight = calculator_module.compute_weight(
-      fmodel             = fmodel_copy,
-      hdm                = calculator.hdm,
-      exclude_selection  = calculator.exclude_selection,
-      restraints_manager = calculator.restraints_manager)
+    if(params.refine.data_weight is not None):
+      print("Starting weight search from user-supplied data weight:",
+        params.refine.data_weight, file=log)
+      data_weight = params.refine.data_weight
+    else:
+      data_weight = calculator_module.compute_weight(
+        fmodel             = fmodel_copy,
+        hdm                = calculator.hdm,
+        exclude_selection  = calculator.exclude_selection,
+        restraints_manager = calculator.restraints_manager)
     calculator.setw(
       data_weight             = data_weight,
       restraints_weight_scale = 1.,

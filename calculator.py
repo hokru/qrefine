@@ -278,6 +278,7 @@ class sites(object):
       xray_structure = self.fmodel.xray_structure,
       update_f_calc  = True)
     self.target_and_gradients(x=x)
+    self.n_tg_calls+=1
     # This is to monitor convergence
     r_work = self.fmodel.r_work()
     r_free = self.fmodel.r_free()
@@ -309,7 +310,9 @@ class sites(object):
   #  return b_mean
   #
   def callback_after_step(self, minimizer=None):
-    # Early stop
+    # Early stop based on r_work plateau. Not meaningful when the data term
+    # is switched off (data_weight=0), since r_work is not being optimized.
+    if(self.data_weight == 0): return
     if(self.r_works.size()>3):
       rs = self.r_works[-3:]
       rs = list(set([round(_, 5) for _ in rs]))
@@ -326,7 +329,6 @@ class sites(object):
   #  if(self.converged()): return True
 
   def target_and_gradients(self, x):
-    self.n_tg_calls+=1
 
     if self.hdm is not None: # XXX perhaps now broken
       x = self.hdm.average(array = flex.vec3_double(x)).as_double()
