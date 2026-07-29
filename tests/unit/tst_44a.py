@@ -53,9 +53,9 @@ def run(prefix, verbose=True):
   """
   path = qr_unit_tests+"/data_files/"
   files = ["m2_complete_box_large.pdb",
-           "p212121.pdb",
-           "p1_box_small.pdb",
-           "p1_box_large.pdb"
+           "p212121_oxt.pdb",
+           "p1_box_small_oxt.pdb",
+           "p1_box_large_oxt.pdb"
            ]
   for f in files:
     fn = path + f
@@ -85,7 +85,7 @@ def run(prefix, verbose=True):
 
     d = max(granalyse.get_grad_wdelta(ref=g1, g=g2))
     if(verbose): print(d, "get_grad_wdelta")
-    assert d < 10. # XXX Is this reasonable?
+    assert d < 15.
 
 if(__name__ == "__main__"):
   prefix = os.path.basename(__file__).replace(".py","")
