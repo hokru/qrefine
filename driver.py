@@ -106,7 +106,9 @@ def refine(fmodel,
 
   if(params.refine.skip_weight_search):
     data_weight = params.refine.data_weight
-    if(data_weight is None): data_weight = 1.
+    if(data_weight is None):
+      raise Sorry(
+        "refine.data_weight must be specified when refine.skip_weight_search=True.")
     print("Using user-supplied data weight (weight search skipped):",
       data_weight, file=log)
     calculator.setw(
