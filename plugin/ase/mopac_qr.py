@@ -160,17 +160,26 @@ class Mopac(Calculator):
 
     def get_command(self):
         """Return command string if program installed, otherwise None.
-            Search order: 1. Phenix-mopac 2. $PATH 3. MOPAC_COMMAND  """
+            Search order: 1. MOPAC_COMMAND 2. Phenix-mopac 3. $PATH
+            4. pixi/conda env bin  """
+        import sys
         from shutil import which
+
         from mmtbx.geometry_restraints import mopac_manager
+        if ('MOPAC_COMMAND' in os.environ):
+            return os.environ['MOPAC_COMMAND']
         command = mopac_manager.get_exe()
         if command: return command
         command = which('mopac')
         if command is not None:
             return command
-        if ('MOPAC_COMMAND' in os.environ):
-          command = os.environ['MOPAC_COMMAND']
-        return command
+        # Not all pixi/conda-style installs populate the conda_base layout
+        # that mopac_manager.get_exe() expects; sys.prefix reliably points
+        # at the active environment root regardless of that layout.
+        command = os.path.join(sys.prefix, 'bin', 'mopac')
+        if os.path.exists(command):
+            return command
+        return None
 
     def set_command(self, command):
       self.command = command
