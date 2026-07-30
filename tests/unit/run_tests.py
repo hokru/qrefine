@@ -86,23 +86,38 @@ def run(nproc=1,
   t0=time.time()
   print('Running tests on %d processors' % nproc)
   # Individual test runner
+  # NOTE: this runs inside an easy_mp worker subprocess when nproc>1. Its
+  # stdout is NOT captured/serialized by easy_mp (only stderr is), so it
+  # must not print() anything itself -- concurrent workers would scramble
+  # the terminal. All output goes to a per-test log file instead; only the
+  # parent (the loop in run(), below) is safe to print from.
   def _run_test(file_name, in_separate_directory=True):
     t00=time.time()
+    fn = file_name.split('.')[0]
     if in_separate_directory:
-      fn = file_name.split('.')[0]
-      if not os.path.exists(fn):
-        os.mkdir(fn)
+      if os.path.exists(fn):
+        return {"return_code": 1,
+                "elapsed": time.time()-t00,
+                "log_path": None,
+                "message": f"stale directory '{fn}' already exists from a "
+                  "previous run -- remove it before rerunning "}
+      os.mkdir(fn)
       os.chdir(fn)
     full_test_file_name = os.path.join(qr_unit_tests,file_name)
-    print("Running test: %s in folder: %s"%(full_test_file_name,fn))
+    log_path = os.path.abspath("%s.log"%fn)
     rc = easy_run.go("qrefine.python %s"%(full_test_file_name))
-    if rc.return_code != 0:
-      rc.show_stderr()
-      rc.show_stdout()
+    with open(log_path, "w") as log:
+      log.write("Running test: %s in folder: %s\n"%(full_test_file_name,fn))
+      for line in rc.stdout_lines:
+        log.write(line+"\n")
+      for line in rc.stderr_lines:
+        log.write(line+"\n")
+      log.write('Time (this test): %6.2f (s)\n' % (time.time()-t00))
     if in_separate_directory:
       os.chdir('..')
-    print('%sTime (this test): %6.2f (s)' % (' '*7, time.time()-t00))
-    return rc.return_code
+    return {"return_code": rc.return_code,
+            "elapsed": time.time()-t00,
+            "log_path": log_path}
   # Collect test files
   tests = []
   for fn in os.listdir(qr_unit_tests):
@@ -131,25 +146,61 @@ def run(nproc=1,
   print("Following tests will be executed:")
   print(" ".join(tests))
   #
-  failed = 0
+  n_total = len(tests)
+  results = []
   in_separate_directory=True # not(nproc==1)
   for i, file_name in enumerate(tests):
     tests[i]=tuple([file_name, in_separate_directory])
   #
-  for args, res, err_str in easy_mp.multi_core_run( _run_test,
+  for i, (args, res, err_str) in enumerate(easy_mp.multi_core_run(
+                                                    _run_test,
                                                     tests,
                                                     nproc,
-                                                    ):
-    print('%sTime (total)    : %6.2f (s)' % (' '*7, time.time()-t0))
+                                                    )):
+    file_name = args[0]
+    fn = file_name.split('.')[0]
+    message = None
+    if isinstance(res, dict):
+      rc = res["return_code"]
+      elapsed = res["elapsed"]
+      log_path = res["log_path"]
+      message = res.get("message")
+    else:
+      # worker crashed before returning (e.g. exception outside easy_run.go)
+      rc = 1
+      elapsed = None
+      log_path = None
+    status = "OK" if rc == 0 else "FAILED"
+    elapsed_str = ("%6.2f (s)" % elapsed) if elapsed is not None else "   n/a"
+    print('[%d/%d] %-12s %-6s %s' % (i+1, n_total, fn, status, elapsed_str))
+    if message:
+      print('    %s' % message)
     if err_str:
-      print('Error output from %s' % args)
-      print(err_str)
-      print('_'*80)
-    if res:
-      print('\n\t %s %s\n' % (args,res))
-      failed += 1
-  if failed:
-    print('Failed tests : %d' % failed)
+      # worker-process stderr (crash traceback etc.), not the test's own
+      # captured output -- route to the per-test log when one exists.
+      if log_path:
+        with open(log_path, "a") as log:
+          log.write("--- worker stderr ---\n")
+          log.write(err_str)
+      else:
+        print('Error output from %s' % fn)
+        print(err_str)
+    results.append({"name": fn, "status": status, "elapsed": elapsed,
+                     "log_path": log_path, "message": message})
+  failed_results = [r for r in results if r["status"] == "FAILED"]
+  print('='*60)
+  print('Test summary: %d run, %d passed, %d failed  (total time: %6.2f (s))' % (
+    n_total, n_total-len(failed_results), len(failed_results), time.time()-t0))
+  if failed_results:
+    print('FAILED tests:')
+    for r in failed_results:
+      elapsed_str = ("%6.2f (s)" % r["elapsed"]) if r["elapsed"] is not None else "   n/a"
+      if r["message"]:
+        print('  %-12s %s   %s' % (r["name"], elapsed_str, r["message"]))
+      else:
+        print('  %-12s %s   log: %s' % (r["name"], elapsed_str, r["log_path"]))
+  print('='*60)
+  if failed_results:
     return 1
   return 0
 
