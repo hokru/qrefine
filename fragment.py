@@ -14,6 +14,7 @@ from . import completion
 from .charges import charges_class
 from mmtbx.pair_interaction import pair_interaction
 from functools import cmp_to_key
+from qrefine.super_cell import DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR
 
 qrefine = libtbx.env.find_in_repositories("qrefine")
 
@@ -60,8 +61,10 @@ class fragments(object):
       save_clusters              = False,
       select_within_radius       = 10.0,
       clusters_only              = False,
-      bond_with_altloc_flag      = True):
+      bond_with_altloc_flag      = True,
+      const_shrink_donor_acceptor = DEFAULT_CONST_SHRINK_DONOR_ACCEPTOR):
     #
+    self.const_shrink_donor_acceptor = const_shrink_donor_acceptor
     self.bond_with_altloc_flag = bond_with_altloc_flag
     self.select_within_radius = select_within_radius
     self.charge_embedding = charge_embedding
@@ -97,9 +100,10 @@ class fragments(object):
 
   def _expand(self):
     self.expansion = expand(
-      pdb_hierarchy        = self.pdb_hierarchy,
-      crystal_symmetry     = self.crystal_symmetry,
-      select_within_radius = self.select_within_radius)
+      pdb_hierarchy               = self.pdb_hierarchy,
+      crystal_symmetry            = self.crystal_symmetry,
+      select_within_radius        = self.select_within_radius,
+      const_shrink_donor_acceptor = self.const_shrink_donor_acceptor)
     self.pdb_hierarchy_super = self.expansion.ph_super_sphere
     self.expansion_file = "expansion.pdb"
     self.expansion.write_super_cell_selected_in_sphere(
