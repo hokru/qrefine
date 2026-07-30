@@ -30,12 +30,12 @@ jobs:
 
     steps:
       - name: checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: df
         run: df -h
 
-      - uses: mamba-org/setup-micromamba@v2
+      - uses: mamba-org/setup-micromamba@v3
         with:
           environment-file: environment.yaml
           cache-environment: false
@@ -81,14 +81,14 @@ jobs:
 
       - name: Archive qr test output
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: qr-test-output
           path: ./qr_test.txt
 
       - name: Archive qr-log files output
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: tests-dir
           path: /home/runner/work/qrefine/qrefine/testing_workdir
