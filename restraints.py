@@ -14,6 +14,7 @@ from .plugin.ase.turbomole_qr import Turbomole
 from .plugin.ase.orca_qr import Orca
 from .plugin.ase.gaussian_qr import Gaussian
 from .plugin.ase.xtb_qr import GFNxTB
+from .plugin.ase.dftbplus_qr import DFTBPlus
 from .plugin.ase.server_qr import RestAPICalculator
 from .plugin.tools import qr_tools
 from libtbx import group_args
@@ -106,6 +107,7 @@ class restraints(object):
           qm_addon_method  = self.params.quantum.qm_addon_method,
           memory           = self.params.quantum.memory,
           nproc            = self.params.quantum.nproc,
+          extra_flags      = self.params.quantum.extra_flags,
           url              = self.params.quantum.server_url,
           crystal_symmetry = crystal_symmetry,
           clustering       = self.params.cluster.clustering)
@@ -455,6 +457,7 @@ class from_qm(object):
       basis                      = "sto-3g",
       memory                     = None,
       nproc                      = 1,
+      extra_flags                = None,
       url                        = None
   ):
     self.fragment_extracts  = fragment_extracts
@@ -462,6 +465,7 @@ class from_qm(object):
     self.basis = basis
     self.memory = memory
     self.nproc = nproc
+    self.extra_flags = extra_flags
     self.qm_addon = qm_addon
     self.qm_addon_method = qm_addon_method
     self.url = url
@@ -514,6 +518,8 @@ class from_qm(object):
       calculator = AIMNet2Calculator(model)
     elif(self.qm_engine_name == "xtb"):
       calculator = GFNxTB()
+    elif(self.qm_engine_name == "dftbplus"):
+      calculator = DFTBPlus()
     elif(self.qm_engine_name == "server"):
       calculator = RestAPICalculator(url=self.url)
     elif(self.qm_engine_name == "fairchem"):
@@ -534,6 +540,7 @@ class from_qm(object):
                    'method',
                    'memory',
                    'nproc',
+                   'extra_flags',
                    ]:
         value = getattr(self, attr, None)
         func = getattr(calculator, 'set_%s' % attr, None)

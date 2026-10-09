@@ -89,6 +89,13 @@ def run():
     print(" - MOPAC was found on your path")
 
 
+  command = shutil.which('dftb+')
+  if command is None:
+    raise RuntimeError('dftb+ is not installed and found on your path')
+  else:
+    print(" - DFTB+ was found on your path")
+
+
   qm_engine_env_vars = {
                         'TERACHEM_COMMAND' : 'TeraChem directory',
                         'Orca_COMMAND': 'Orca directory',

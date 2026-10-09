@@ -249,6 +249,20 @@ def set_qm_defaults(params, log):
           params.quantum.method,
           ), file=log)
       params.quantum.basis = ''
+  if params.quantum.engine_name=='dftbplus':
+    use_default_dftb_method = params.quantum.method==Auto
+    if params.quantum.method==Auto:
+      params.quantum.method='gfn2/alpb'
+    try:
+      from qrefine.plugin.ase.dftbplus_qr import normalize_dftb_method
+      params.quantum.method = normalize_dftb_method(params.quantum.method)
+    except ValueError as e:
+      raise Sorry(str(e))
+    if use_default_dftb_method:
+      print(' Default method for dftbplus is %s' % (
+          params.quantum.method,
+          ), file=log)
+    params.quantum.basis = ''
   if params.quantum.engine_name=='aimnet2':
     print(file=log)
     print("Setting aimnet2 specific defaults:", file=log)

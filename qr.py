@@ -91,7 +91,7 @@ expansion = False
   .type = bool
   .help = Expand input model into super-sphere
 quantum {
-  engine_name = *mopac fairchem aimnet2 aimnet2-old torchani terachem turbomole pyscf orca gaussian xtb server
+  engine_name = *mopac fairchem aimnet2 aimnet2-old torchani terachem turbomole pyscf orca gaussian xtb dftbplus server
     .type = choice(multi=False)
     .help = choose the QM program
   basis = Auto
@@ -102,13 +102,22 @@ quantum {
     .help = The formal charge of the entire molecule
   method = Auto
     .type = str
-    .help = Defaults to HF for all but MOPAC (PM7), xTB (GFN2) and TorchANI (ani-1x_8x)
+    .help = Defaults to HF for all but MOPAC (PM7), xTB (GFN2), DFTB+ (gfn2/alpb) and TorchANI (ani-1x_8x). DFTB+ accepts gfn1|gfn2 combined with alpb|gbsa|none (for example gfn2/alpb).
   memory = None
     .type = str
     .help = memory for the QM program
   nproc = 1
     .type = int
     .help = number of parallel processes for the QM program
+  extra_flags = None
+    .type = str
+    .help = free-form flags string passed through to the QM engine's launch \
+            command, if it supports one. Currently only used by dftbplus, \
+            where it is appended verbatim to the mpirun invocation (e.g. \
+            for hostfiles, process binding, or env-var forwarding) since \
+            mpirun flag syntax differs across MPI vendors and this plugin \
+            does not guess it on the user's behalf. Ignored by engines that \
+            don't define a set_extra_flags method.
   server_url =  http://127.0.0.1:8000
     .type = str
     .help = address (http://address:port) of the server API if engine_name=server
